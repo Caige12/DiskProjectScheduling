@@ -27,7 +27,10 @@ public class SCAN implements IDiskAlgorithm {
 			}
 		}
 		int Movement = 0;
+		int EndPoint = 4999;
 		int currentPosition = headPosition;
+	// Add a Compare and Request system to go for 5000 cycles
+	
 	}
 
 
