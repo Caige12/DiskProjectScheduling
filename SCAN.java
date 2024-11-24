@@ -1,61 +1,60 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * This class implements the SCAN disk scheduling algorithm.
+ *
+ * @author ...
+ */
 public class SCAN implements IDiskAlgorithm {
 
-    private List<DiskRequest> requests;
-    private int headPosition;
-
-    public SCAN(List<DiskRequest> requests, int headPosition) {
-        this.requests = requests;
-        this.headPosition = headPosition;
-    }
-
     @Override
-    public int calculateDistance() {
-        // Filter and sort requests by arrival time, then by track
-        List<DiskRequest> readyRequests = new ArrayList<>();
-        for (DiskRequest request : requests) {
-            if (request.timeOfArrival <= headPosition) {
-                readyRequests.add(request);
-            }
-        }
-
-        readyRequests.sort(Comparator.comparingInt(r -> r.track)); // Sort by track
-
-        // Separate into lower and higher tracks
-        List<DiskRequest> lowerTracks = new ArrayList<>();
-        List<DiskRequest> higherTracks = new ArrayList<>();
-
-        for (DiskRequest request : readyRequests) {
-            if (request.track < headPosition) {
-                lowerTracks.add(request);
-            } else {
-                higherTracks.add(request);
-            }
-        }
-
-        int movement = 0;
+    public int calculateDistance(List<DiskRequest> requests, int headPosition) {
         int currentPosition = headPosition;
+        int totalHeadMovement = 0;
 
-        // Serve requests moving towards 4999
-        for (DiskRequest request : higherTracks) {
-            movement += Math.abs(currentPosition - request.track);
-            currentPosition = request.track;
+        // Sort requests by track position
+        List<DiskRequest> sortedList = sortArray(requests, headPosition);
+
+        // Split requests into higher and lower tracks
+        List<DiskRequest> higherTracks = new ArrayList<>();
+        List<DiskRequest> lowerTracks = new ArrayList<>();
+
+        for (DiskRequest request : sortedList) {
+            if (request.getTrack() >= headPosition) {
+                higherTracks.add(request);
+            } else {
+                lowerTracks.add(request);
+            }
         }
 
-        // Move to the edge (4999)
-        movement += Math.abs(4999 - currentPosition);
-        currentPosition = 4999;
+        // Service requests in the upward direction
+        for (DiskRequest request : higherTracks) {
+            totalHeadMovement += Math.abs(currentPosition - request.getTrack());
+            currentPosition = request.getTrack();
+        }
 
-        // Reverse direction and serve requests moving towards 0
+        // Move to the highest track (4999) if not already there
+        if (currentPosition <= 4999) {
+            totalHeadMovement += Math.abs(4999 - currentPosition);
+            currentPosition = 4999;
+        }
+
+        // Service requests but reversed from 4999
         for (int i = lowerTracks.size() - 1; i >= 0; i--) {
             DiskRequest request = lowerTracks.get(i);
-            movement += Math.abs(currentPosition - request.track);
-            currentPosition = request.track;
+            totalHeadMovement += Math.abs(currentPosition - request.getTrack());
+            currentPosition = request.getTrack();
         }
 
-        return movement;
+        return totalHeadMovement;
+    }
+
+    private List<DiskRequest> sortArray(List<DiskRequest> requests, int headPosition) {
+        List<DiskRequest> sortedArray = new ArrayList<>(requests);
+        sortedArray.sort(Comparator.comparingInt(DiskRequest::getTrack));
+        return sortedArray;
     }
 }
