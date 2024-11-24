@@ -3,11 +3,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * This class implements the SCAN disk scheduling algorithm.
- *
- * @author ...
- */
 public class SCAN implements IDiskAlgorithm {
 
     @Override
@@ -30,13 +25,13 @@ public class SCAN implements IDiskAlgorithm {
             }
         }
 
-        // Service requests in the upward direction
+        // Service requests to the highest track
         for (DiskRequest request : higherTracks) {
             totalHeadMovement += Math.abs(currentPosition - request.getTrack());
             currentPosition = request.getTrack();
         }
 
-        // Move to the highest track (4999) if not already there
+        // Move to the highest track if not already there
         if (currentPosition <= 4999) {
             totalHeadMovement += Math.abs(4999 - currentPosition);
             currentPosition = 4999;
